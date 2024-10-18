@@ -1,5 +1,7 @@
 package com.example.tictactoe.configuration;
 
+import com.example.tictactoe.Endpoint.GameServer;
+import com.example.tictactoe.GameWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

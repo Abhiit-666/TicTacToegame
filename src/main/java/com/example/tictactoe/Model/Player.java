@@ -1,29 +1,21 @@
 package com.example.tictactoe.Model;
 
 import jakarta.websocket.Session;
+import org.springframework.web.socket.WebSocketSession;
 
 public class Player {
 
-    private Session session;
+    private WebSocketSession session;
     private String gameID;
 
-    public Player(Session session){
+    public Player(WebSocketSession session){
         this.session=session;
     }
 
-    public Session getSession(){
+    public WebSocketSession getSession(){
         return session;
     }
 
-    public String getGameId(Session session){
-        if(this.session==session){
-            return gameID;
-        }
-        return null;
-    }
 
-    public void setGameID(String gameID){
-        this.gameID=gameID;
-    }
-    
+
 }

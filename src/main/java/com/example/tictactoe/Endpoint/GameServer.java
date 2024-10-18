@@ -1,8 +1,14 @@
-package Endpoint;
+package com.example.tictactoe.Endpoint;
 
 import com.example.tictactoe.GameManager.GameManager;
-import jakarta.websocket.*;
+
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
+import org.springframework.web.socket.WebSocketSession;
 
 @ServerEndpoint("/game")
 public class GameServer
@@ -10,21 +16,21 @@ public class GameServer
     private static GameManager gameManager;
 
 
-    @OnOpen
-    public void onOpen(Session session){
+    @OnOpen 
+    public void onOpen(WebSocketSession session){
         System.out.println("New player connected: "+session.getId());
         gameManager.addPlayer(session);
     }
 
     @OnMessage
-    public void onMessage(String message,Session session){
+    public void onMessage(String message,WebSocketSession session){
         gameManager.processMessage(session,message);
     }
 
     @OnClose
-    public void onClose(Session session,String reason){
+    public void onClose(WebSocketSession session){
         System.out.println("Connection closed: "+session.getId());
-        gameManager.disconnectPlayer(session,reason);
+        gameManager.disconnectPlayer(session);
     }
 
     @OnError

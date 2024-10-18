@@ -4,6 +4,7 @@ import com.example.tictactoe.Game.Game;
 import com.example.tictactoe.Model.Player;
 import jakarta.websocket.Session;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,10 +18,10 @@ public class GameManager {
     //active games
     private Map<String, Game> activeGames = new HashMap<>();
 
-    private Map<Session, Game> playertogameMap = new ConcurrentHashMap<>();
+    private Map<WebSocketSession, Game> playertogameMap = new ConcurrentHashMap<>();
 
     //add Player.
-    public void addPlayer(Session session) {
+    public void addPlayer(WebSocketSession session) {
         Player player = new Player(session);
         if (waitingPlayers.isEmpty()) {
             waitingPlayers.put(session.getId(), player);
@@ -40,7 +41,7 @@ public class GameManager {
     //we also have that player move which is represented by a string
     //We have to first find an active game by session(player)
     //once that is found we have to process the players move in that active game
-    public void processMessage(Session session, String message) {
+    public void processMessage(WebSocketSession session, String message) {
 
         Game game = playertogameMap.get(session);
         if (game != null) {
@@ -54,10 +55,10 @@ public class GameManager {
     //if a game is present end the game and remove it from the games list.
     //if no games are present for the session meaning the player must be in the waiting list.
     //remove the player from the waiting list.
-    public void disconnectPlayer(Session session, String message) {
+    public void disconnectPlayer(WebSocketSession session) {
         Game game = playertogameMap.get(session);
         if (game != null) {
-            game.endGame(message);
+            game.endGame("Game Ended");
             activeGames.remove(game.getGameId());
         }
     }
