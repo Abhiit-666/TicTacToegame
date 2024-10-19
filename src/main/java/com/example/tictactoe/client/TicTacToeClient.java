@@ -48,7 +48,7 @@ public class TicTacToeClient {
         Scanner sc=new Scanner(System.in);
 
         while(true){
-            System.out.println("Enter your move");
+            System.out.println("Connected Top Server");
             String move=sc.nextLine();
             client.sendMessage(move);
         }

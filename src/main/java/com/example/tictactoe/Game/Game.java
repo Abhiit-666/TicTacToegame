@@ -23,7 +23,7 @@ public class Game {
             this.GameId= UUID.randomUUID().toString();
             this.player1=player1;
             this.player2=player2;
-            this.currentPlayer=player2;
+            this.currentPlayer=player1;
         }
 
         //function to get gameid
@@ -37,9 +37,9 @@ public class Game {
             sendGameState();
         }
         //function to find game with a player
-        public boolean containsSession(Session session){
-            return player1.getSession().equals(session) || player2.getSession().equals(session);
-        }
+//        public boolean containsSession(Session session){
+//            return player1.getSession().equals(session) || player2.getSession().equals(session);
+//        }
 
         //function to processmove
         public void processMove(WebSocketSession session, String move){
@@ -55,6 +55,7 @@ public class Game {
         //function to send game state to each player
         public void sendGameState(){
 
+            sendMessage(currentPlayer.getSession(),"Make your move");
         }
         //function to notify end of game.
         public void endGame(String message){

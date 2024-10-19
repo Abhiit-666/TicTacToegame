@@ -16,7 +16,7 @@ public class GameManager {
     //waiting players
     private Map<String, Player> waitingPlayers = new HashMap<>();
     //active games
-    private Map<String, Game> activeGames = new HashMap<>();
+    private Map<String, Game> activeGames = new ConcurrentHashMap<>();
 
     private Map<WebSocketSession, Game> playertogameMap = new ConcurrentHashMap<>();
 
