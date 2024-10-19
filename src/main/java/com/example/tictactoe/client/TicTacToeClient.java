@@ -1,6 +1,8 @@
 package com.example.tictactoe.client;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import jakarta.websocket.*;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.net.URI;
 import java.util.Scanner;
@@ -14,9 +16,14 @@ public class TicTacToeClient {
         container.connectToServer(this,new URI(serverURI));
     }
 
+    //find some way to differentiate between a Player and server message
     @OnMessage
     public void onMessage(String message){
-        System.out.println("Server :" + message);
+        if(message.contains("Opponent :")){
+            System.out.println(message);
+        }else {
+            System.out.println("Server :" + message);
+        }
     }
 
 
@@ -48,7 +55,7 @@ public class TicTacToeClient {
         Scanner sc=new Scanner(System.in);
 
         while(true){
-            System.out.println("Connected Top Server");
+
             String move=sc.nextLine();
             client.sendMessage(move);
         }

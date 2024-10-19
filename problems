@@ -52,22 +52,6 @@ As a Java backend developer, creating projects that demonstrate your ability to 
      - REST API for frontend integration.
    - **Why This is Valuable**: Highlights foundational backend skills for building web applications.
 
-### 7. **Expense Tracking/Budget Planner App**
-   - **Skills Demonstrated**: API development, database interactions, data validation, user profiles, security.
-   - **Key Features**:
-     - Users can log income/expenses, categorize them, and view reports.
-     - Budget setting and tracking features.
-     - Integration with external services (for currency rates or payment gateways).
-     - Secure user authentication and session handling.
-   - **Why This is Valuable**: Shows full-stack thinking, API integration, and user data management.
-
-### 8. **Content Recommendation Engine**
-   - **Skills Demonstrated**: Data analysis, personalized user profiles, caching, Kafka for event-driven systems.
-   - **Key Features**:
-     - Personalized content suggestions based on user preferences and interactions.
-     - Real-time recommendations using Kafka or a similar messaging system.
-     - Cache implementation for performance.
-   - **Why This is Valuable**: Shows ability to handle real-time data and implement recommendation logic.
 
 ### 9. **Warehouse Management System (WMS)**
    - **Skills Demonstrated**: Database design, complex business logic, transactions, inventory tracking.

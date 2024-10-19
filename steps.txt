@@ -69,3 +69,11 @@ Here’s a stepwise approach to building a real-time multiplayer Tic-Tac-Toe gam
 ---
 
 These steps should guide you through each phase, from setting up basic networking to implementing game logic and deploying your application. Let me know if you need further detail on any specific step!
+
+
+
+lobby
+ranking system
+6X6 board
+game types- basic 3X3, time constrained, special mode
+basic AI for the game

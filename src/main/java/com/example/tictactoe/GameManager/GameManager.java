@@ -13,11 +13,9 @@ import java.util.concurrent.ConcurrentMap;
 
 public class GameManager {
 
-    //waiting players
-    private Map<String, Player> waitingPlayers = new HashMap<>();
-    //active games
-    private Map<String, Game> activeGames = new ConcurrentHashMap<>();
 
+    private Map<String, Player> waitingPlayers = new HashMap<>();
+    private Map<String, Game> activeGames = new ConcurrentHashMap<>();
     private Map<WebSocketSession, Game> playertogameMap = new ConcurrentHashMap<>();
 
     //add Player.
@@ -45,7 +43,20 @@ public class GameManager {
 
         Game game = playertogameMap.get(session);
         if (game != null) {
-            game.processMove(session, message);
+            WebSocketSession opposition=game.nextPlayer(session);
+            if (message.contains("/text")){
+                String messagecontent[]=message.split(" ");
+                StringBuilder messagebuilder= new StringBuilder();
+                for(int i=1;i<messagecontent.length;i++){
+                    messagebuilder.append(messagecontent[i]+" ");
+                }
+                String finalMessage = "Opponent" + " :" + messagebuilder.toString().trim();
+//                System.out.println(messagebuilder.toString().trim());
+                game.sendMessage(opposition,finalMessage);
+            }else{
+                game.processMove(session,opposition, message);
+            }
+
         }
     }
 

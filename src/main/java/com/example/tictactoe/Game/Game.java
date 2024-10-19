@@ -41,8 +41,16 @@ public class Game {
 //            return player1.getSession().equals(session) || player2.getSession().equals(session);
 //        }
 
+            //next player to update the current player
+            public WebSocketSession nextPlayer(WebSocketSession session){
+                if(player1.getSession().equals(session)){
+                    return player2.getSession();
+                }
+                return player1.getSession();
+            }
+
         //function to processmove
-        public void processMove(WebSocketSession session, String move){
+        public void processMove(WebSocketSession session,WebSocketSession nextplayerSession, String move){
             //find the location// i will try to make it such that if the user taps on
             //a location on the board it will convert that location to the coordinate and send
             //here we check if the position is empty if so place the target there.
@@ -50,12 +58,13 @@ public class Game {
             //stop the game if they won
             //if not continue
             sendGameState();
+            sendMessage(nextplayerSession,"Make your move");
         }
 
         //function to send game state to each player
         public void sendGameState(){
 
-            sendMessage(currentPlayer.getSession(),"Make your move");
+            //i need to update current player everytime their is a move
         }
         //function to notify end of game.
         public void endGame(String message){
@@ -68,8 +77,13 @@ public class Game {
         //session remote.sendText
 
         public void sendMessage(WebSocketSession session,String message){
-            try{
-                session.sendMessage(new TextMessage(message));
+            //find someway to differentiate between a Server message and a player sending a message
+        try{
+
+                    session.sendMessage(new TextMessage(message));
+
+
+
             }catch(Exception e)
             {
                 e.printStackTrace();
