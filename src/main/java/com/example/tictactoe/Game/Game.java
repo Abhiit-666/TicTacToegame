@@ -51,10 +51,10 @@ public class Game {
 
         //function to processmove
         public void processMove(WebSocketSession session,WebSocketSession nextplayerSession, String move){
-            //find the location// i will try to make it such that if the user taps on
+            //find the location// user tapped on
             //a location on the board it will convert that location to the coordinate and send
             //here we check if the position is empty if so place the target there.
-            //afer which we check if the user has won
+            //after which we check if the user has won
             //stop the game if they won
             //if not continue
             sendGameState();
@@ -79,14 +79,10 @@ public class Game {
         public void sendMessage(WebSocketSession session,String message){
             //find someway to differentiate between a Server message and a player sending a message
         try{
-
-                    session.sendMessage(new TextMessage(message));
-
-
-
-            }catch(Exception e)
-            {
+            session.sendMessage(new TextMessage(message));
+        }catch(Exception e)
+        {
                 e.printStackTrace();
-            }
+        }
         }
 }

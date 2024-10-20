@@ -25,14 +25,11 @@ public class TicTacToeClient {
             System.out.println("Server :" + message);
         }
     }
-
-
     @OnOpen
     public void onOpen(Session session){
         this.session= session;
         System.out.println("Connected to the server");
     }
-
     @OnClose
     public void onClose(Session session,CloseReason closeReason){
         System.out.println("Connection closed" +closeReason);

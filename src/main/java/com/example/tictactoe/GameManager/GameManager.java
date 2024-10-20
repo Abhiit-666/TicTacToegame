@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 public class GameManager {
 
 
-    private Map<String, Player> waitingPlayers = new HashMap<>();
+    private Map<String, Player> waitingPlayers = new ConcurrentHashMap<>();
     private Map<String, Game> activeGames = new ConcurrentHashMap<>();
     private Map<WebSocketSession, Game> playertogameMap = new ConcurrentHashMap<>();
 
@@ -40,7 +40,6 @@ public class GameManager {
     //We have to first find an active game by session(player)
     //once that is found we have to process the players move in that active game
     public void processMessage(WebSocketSession session, String message) {
-
         Game game = playertogameMap.get(session);
         if (game != null) {
             WebSocketSession opposition=game.nextPlayer(session);
