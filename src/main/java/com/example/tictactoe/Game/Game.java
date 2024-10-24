@@ -78,11 +78,36 @@ public class Game {
         //after which we check if the user has won
         //stop the game if they won
         //if not continue.
-
+        String coords[]=move.split(",");
+        checkandUpdateMove(coords);
         sendGameState(session, nextplayerSession);
         sendMessage(nextplayerSession, "Make your move");
     }
 
+    private void checkandUpdateMove(String [] move) {
+        //need to determine which players move it is to determine the shape to insert
+        int row = Integer.parseInt(move[0]);
+        int column = Integer.parseInt(move[1]);
+        if (board[row][column] == '-') {
+            //update symbol
+            board[row][column] = 's';
+            //this would ideally be a boolean
+            checkForWinorDraw(row,column);
+
+        }
+    }
+     private void checkForWinorDraw(int row, int column){
+
+        //from yhr currently inserted r,c I need to check for formation of//
+         // 5 consequtive same symbols;
+         int count=0;
+        for(int i=0;i<5;i++){
+            for(int j=0;j<5;j++){
+
+            }
+        }
+
+    }
     private String buildboard() {
         StringBuilder displayBoard = new StringBuilder();
         displayBoard.append("Board\n");
