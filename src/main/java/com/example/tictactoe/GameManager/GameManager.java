@@ -25,6 +25,8 @@ public class GameManager {
             waitingPlayers.put(session.getId(), player);
         } else {
             Player opponent = waitingPlayers.values().iterator().next();
+            player.setPlayerId("one");
+            opponent.setPlayerId("two");
             Game game = new Game(player, opponent);
             playertogameMap.put(player.getSession(), game);
             playertogameMap.put(opponent.getSession(), game);
@@ -37,12 +39,15 @@ public class GameManager {
     //Process player Move
     //we have a player session representing the current player.
     //we also have that player move which is represented by a string
-    //We have to first find an active game by session(player)
+    //We have to p first find an active game by session(player)
     //once that is found we have to process the players move in that active game
     public void processMessage(WebSocketSession session, String message) {
+
         Game game = playertogameMap.get(session);
         if (game != null) {
-            WebSocketSession opposition=game.nextPlayer(session);
+            Map<String, Object> playerDetails=game.nextPlayer(session);
+            WebSocketSession oppositionSession= (WebSocketSession) playerDetails.get("Session");
+            String currentPlayer=(String) playerDetails.get("currentPlayer");
             if (message.contains("/text")){
                 String messagecontent[]=message.split(" ");
                 StringBuilder messagebuilder= new StringBuilder();
@@ -51,9 +56,9 @@ public class GameManager {
                 }
                 String finalMessage = "Opponent" + " :" + messagebuilder.toString().trim();
 //                System.out.println(messagebuilder.toString().trim());
-                game.sendMessage(opposition,finalMessage);
+                game.sendMessage(oppositionSession,finalMessage);
             }else{
-                game.processMove(session,opposition, message);
+                game.processMove(session,oppositionSession,currentPlayer, message);
             }
 
         }
