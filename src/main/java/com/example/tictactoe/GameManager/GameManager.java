@@ -42,12 +42,14 @@ public class GameManager {
     //We have to p first find an active game by session(player)
     //once that is found we have to process the players move in that active game
     public void processMessage(WebSocketSession session, String message) {
-
+        System.out.println(">> procecssMessage");
         Game game = playertogameMap.get(session);
         if (game != null) {
             Map<String, Object> playerDetails=game.nextPlayer(session);
             WebSocketSession oppositionSession= (WebSocketSession) playerDetails.get("Session");
             String currentPlayer=(String) playerDetails.get("currentPlayer");
+            System.out.println("pplayer session: "+ oppositionSession);
+            System.out.println("pcurrentPlayer: "+ currentPlayer);
             if (message.contains("/text")){
                 String messagecontent[]=message.split(" ");
                 StringBuilder messagebuilder= new StringBuilder();
@@ -57,8 +59,10 @@ public class GameManager {
                 String finalMessage = "Opponent" + " :" + messagebuilder.toString().trim();
 //                System.out.println(messagebuilder.toString().trim());
                 game.sendMessage(oppositionSession,finalMessage);
+                System.out.println("<< procecssMessage");
             }else{
                 game.processMove(session,oppositionSession,currentPlayer, message);
+                System.out.println("<< procecssMessage");
             }
 
         }

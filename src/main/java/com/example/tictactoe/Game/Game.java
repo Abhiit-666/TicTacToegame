@@ -1,7 +1,9 @@
 package com.example.tictactoe.Game;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import com.example.tictactoe.Model.Player;
 import jakarta.websocket.Session;
+import org.slf4j.ILoggerFactory;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -36,7 +38,7 @@ public class Game {
 
     //function to startGame
     public void startGame() {
-        constructUpdateBoard("");
+        constructBoard(" ");
         sendMessage(player1.getSession(), "Game Started. You are Player 1.");
         sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
         sendMessage(player2.getSession(), "Game Started. You are Player 2.");
@@ -45,20 +47,18 @@ public class Game {
         sendMessage(player1.getSession(), "Make your move");
     }
 
-    private void constructUpdateBoard(String move){
+    private void constructBoard(String move){
         String pos[]=move.split(",",2);
+        System.out.println("Length: "+pos.length);
         //intitializing the board at start
         //need to make sure if user enters empty move after game start it wont reinitialize the board
         //check the user input inplace
-        if(pos.length==0) {
+        if(pos.length==1) {
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
-                    board[i][j]='-';
+                    board[i][j]= '-';
                 }
             }
-        }
-        else{
-
         }
     }
 
@@ -69,14 +69,22 @@ public class Game {
 
     //next player to update the current player
     public Map<String,Object> nextPlayer(WebSocketSession session) {
+
+        System.out.println(">> nextPlayer");
         Map<String,Object> playerDetails=new HashMap<>();
         if (player1.getSession().equals(session)) {
             playerDetails.put("Session",player2.getSession());
             playerDetails.put("currentPlayer",player1.getPlayerId());
+            System.out.println("player session: "+ player2.getSession());
+            System.out.println("currentPlayer: "+ player1.getPlayerId());
+            System.out.println("<< nextPlayer");
             return playerDetails;
         }
         playerDetails.put("Session",player1.getSession());
         playerDetails.put("ID",player2.getPlayerId());
+        System.out.println("player session: "+ player1.getSession());
+        System.out.println("currentPlayer: "+ player2.getPlayerId());
+        System.out.println("<< nextPlayer");
         return playerDetails;
 
     }
@@ -90,15 +98,19 @@ public class Game {
         //stop the game if they won
         //if not continue.
         String coords[]=move.split(",");
-        checkandUpdateMove(coords,currentPlayer);
+        checkandUpdateMove(coords,currentPlayer,session);
         sendGameState(session, nextplayerSession);
         sendMessage(nextplayerSession, "Make your move");
     }
 
-    private void checkandUpdateMove(String [] move,String currentPlayer) {
+    private void checkandUpdateMove(String [] move,String currentPlayer, WebSocketSession currentPlayerSession) {
         //need to determine which players move it is to determine the shape to insert
         int row = Integer.parseInt(move[0]);
         int column = Integer.parseInt(move[1]);
+        if(row >= 5 || column>=5){
+            sendMessage(currentPlayerSession,"Enter a postion in the board and not occupied!!");
+        }
+
         if (board[row][column] == '-') {
             if(currentPlayer.equals("one")){
                 board[row][column] = 'o';
@@ -109,9 +121,11 @@ public class Game {
                 checkForWinorDraw(row,column,'x',currentPlayer);
             }
             //this would ideally be a boolean
-
+        }else if(board[row][column] != '-'){
+            sendMessage(currentPlayerSession,"Invalid location");
         }
     }
+
      private void checkForWinorDraw(int row, int column,char symbol,String currentPlayer){
 
         //from currently inserted r,c I need to check for formation of//
@@ -122,14 +136,22 @@ public class Game {
              countSymb(row,column, 1,-1,symbol) == 5||
              countSymb(row,column, 1,1,symbol) == 5){
          endGame("Player "+currentPlayer+" has Won!!!");
+         }else if(checkDraw()){
+             endGame("The game has ended in a draw!!!");
          }
 
 
-         for(int i=0;i<5;i++){
-            for(int j=0;j<5;j++){
+    }
 
+    private boolean checkDraw(){
+        for(int i=0;i<5;i++){
+            for(int j=0;j<5;j++){
+                if(board[i][j]=='-'){
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     private int countSymb(int row,int column,int rowOffset,int columnOffset,char symbol){
@@ -145,8 +167,8 @@ public class Game {
             c+=columnOffset;
         }
 
-        r=row;
-        c=column;
+        r=row - rowOffset;
+        c=column - columnOffset;
         while(r>=0 && r<5 && c>=0 && c<5 && board[r][c]==symbol){
             count++;
             r-=rowOffset;
