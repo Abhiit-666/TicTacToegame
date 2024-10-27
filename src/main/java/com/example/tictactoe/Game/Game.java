@@ -38,9 +38,13 @@ public class Game {
         return GameId;
     }
 
+
+
     //function to startGame
-    public void startGame() {
-        constructBoard(" ");
+    //Start Game will take in the game Type
+    //Types --> 5X5, 3X3, 4X4 blitz
+    public void startGame(String type) {
+        constructBoard(type);
         sendMessage(player1.getSession(), "Game Started. You are Player 1.");
         sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
         sendMessage(player2.getSession(), "Game Started. You are Player 2.");
@@ -49,19 +53,26 @@ public class Game {
         sendMessage(player1.getSession(), "Make your move");
     }
 
-    private void constructBoard(String move) {
-        String pos[] = move.split(",", 2);
-        System.out.println("Length: " + pos.length);
+    private void constructBoard(String Type) {
+        int n=0;
+        switch (Type){
+            case "5X5":
+                n=5;
+                break;
+            case "3X3":
+                n=3;
+                break;
+            case "4X4 blitz":
+                n=5;
+                break;
+        }
         //intitializing the board at start
-        //need to make sure if user enters empty move after game start it wont reinitialize the board
-        //check the user input inplace
-        if (pos.length == 1) {
-            for (int i = 0; i < 5; i++) {
-                for (int j = 0; j < 5; j++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
                     board[i][j] = '-';
                 }
             }
-        }
+
     }
 
     //function to find game with a player
@@ -120,7 +131,7 @@ public class Game {
         int row = Integer.parseInt(move[0]);
         int column = Integer.parseInt(move[1]);
         if (row >= 5 || column >= 5) {
-            sendMessage(currentPlayerSession, "Enter a postion in the board and not occupied!!");
+            sendMessage(currentPlayerSession, "Enter a position in the board and not occupied!!");
             return false;
         }
 
