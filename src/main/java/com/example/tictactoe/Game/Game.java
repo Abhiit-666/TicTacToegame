@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
     //2players.
@@ -22,6 +23,7 @@ public class Game {
     private Player player2;
     private char[][] board = new char[5][5];
     private Player currentPlayer;
+    private boolean gameEnded;
 
     //constructor to initialize a game.
     public Game(Player player1, Player player2) {
@@ -43,20 +45,20 @@ public class Game {
         sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
         sendMessage(player2.getSession(), "Game Started. You are Player 2.");
         sendMessage(player2.getSession(), "Player 1 -> o Player 2 -> x");
-        sendGameState(player1.getSession(),player2.getSession());
+        sendGameState(player1.getSession(), player2.getSession());
         sendMessage(player1.getSession(), "Make your move");
     }
 
-    private void constructBoard(String move){
-        String pos[]=move.split(",",2);
-        System.out.println("Length: "+pos.length);
+    private void constructBoard(String move) {
+        String pos[] = move.split(",", 2);
+        System.out.println("Length: " + pos.length);
         //intitializing the board at start
         //need to make sure if user enters empty move after game start it wont reinitialize the board
         //check the user input inplace
-        if(pos.length==1) {
+        if (pos.length == 1) {
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
-                    board[i][j]= '-';
+                    board[i][j] = '-';
                 }
             }
         }
@@ -68,85 +70,104 @@ public class Game {
 //        }
 
     //next player to update the current player
-    public Map<String,Object> nextPlayer(WebSocketSession session) {
+    public Map<String, Object> nextPlayer(WebSocketSession session) {
 
         System.out.println(">> nextPlayer");
-        Map<String,Object> playerDetails=new HashMap<>();
+        Map<String, Object> playerDetails = new ConcurrentHashMap<>();
         if (player1.getSession().equals(session)) {
-            playerDetails.put("Session",player2.getSession());
-            playerDetails.put("currentPlayer",player1.getPlayerId());
-            System.out.println("player session: "+ player2.getSession());
-            System.out.println("currentPlayer: "+ player1.getPlayerId());
+            playerDetails.put("Session", player2.getSession());
+            playerDetails.put("currentPlayer", player1.getPlayerId());
+            System.out.println("player session: " + player2.getSession());
+            System.out.println("currentPlayer: " + player1.getPlayerId());
             System.out.println("<< nextPlayer");
             return playerDetails;
         }
-        playerDetails.put("Session",player1.getSession());
-        playerDetails.put("ID",player2.getPlayerId());
-        System.out.println("player session: "+ player1.getSession());
-        System.out.println("currentPlayer: "+ player2.getPlayerId());
+        playerDetails.put("Session", player1.getSession());
+        playerDetails.put("currentPlayer", player2.getPlayerId());
+        System.out.println("player session: " + player1.getSession());
+        System.out.println("currentPlayer: " + player2.getPlayerId());
         System.out.println("<< nextPlayer");
         return playerDetails;
 
     }
 
     //function to processmove
-    public void processMove(WebSocketSession session, WebSocketSession nextplayerSession,String currentPlayer, String move) {
+    public void processMove(WebSocketSession session, WebSocketSession nextplayerSession, String currentPlayer, String move) {
         //find the location// user tapped on
         //a location on the board it will convert that location to the coordinate and send
         //here we check if the position is empty if so place the target there.
         //after which we check if the user has won
         //stop the game if they won
         //if not continue.
-        String coords[]=move.split(",");
-        checkandUpdateMove(coords,currentPlayer,session);
+        String coords[] = move.split(",");
+        boolean update= checkandUpdateMove(coords, currentPlayer, session);
+        if(update && !gameEnded){
         sendGameState(session, nextplayerSession);
         sendMessage(nextplayerSession, "Make your move");
-    }
+        }else if (!update && !gameEnded) {
+            sendMessage(session, "Make your move");
+        }
 
-    private void checkandUpdateMove(String [] move,String currentPlayer, WebSocketSession currentPlayerSession) {
+    }
+    private boolean checkandUpdateMove(String[] move, String currentPlayer, WebSocketSession currentPlayerSession) {
+
         //need to determine which players move it is to determine the shape to insert
+
+        //If entered coordinate are within the board.
+        //If entered coordinate is not already occupied
+
+
         int row = Integer.parseInt(move[0]);
         int column = Integer.parseInt(move[1]);
-        if(row >= 5 || column>=5){
-            sendMessage(currentPlayerSession,"Enter a postion in the board and not occupied!!");
+        if (row >= 5 || column >= 5) {
+            sendMessage(currentPlayerSession, "Enter a postion in the board and not occupied!!");
+            return false;
         }
 
         if (board[row][column] == '-') {
-            if(currentPlayer.equals("one")){
+            if (currentPlayer.equals("one")) {
                 board[row][column] = 'o';
-                checkForWinorDraw(row,column,'o',currentPlayer);
-            }
-            else if(currentPlayer.equals("two")){
-                board[row][column]= 'x';
-                checkForWinorDraw(row,column,'x',currentPlayer);
+                checkForWinorDraw(row, column, 'o', currentPlayer);
+            } else if (currentPlayer.equals("two")) {
+                board[row][column] = 'x';
+                checkForWinorDraw(row, column, 'x', currentPlayer);
             }
             //this would ideally be a boolean
-        }else if(board[row][column] != '-'){
-            sendMessage(currentPlayerSession,"Invalid location");
+        } else if (board[row][column] != '-') {
+            sendMessage(currentPlayerSession, "Invalid location");
+            return false;
         }
+            return true;
     }
 
-     private void checkForWinorDraw(int row, int column,char symbol,String currentPlayer){
+    private void checkForWinorDraw(int row, int column, char symbol, String currentPlayer) {
 
         //from currently inserted r,c I need to check for formation of//
-         // 5 consequtive same symbols;
-         int count=0;
-         if (countSymb(row,column, 0,1,symbol) == 5||
-             countSymb(row,column, 1,0,symbol) == 5||
-             countSymb(row,column, 1,-1,symbol) == 5||
-             countSymb(row,column, 1,1,symbol) == 5){
-         endGame("Player "+currentPlayer+" has Won!!!");
-         }else if(checkDraw()){
-             endGame("The game has ended in a draw!!!");
-         }
+        // 5 consequtive same symbols;
+
+
+        //If current move leads to Win--> endGame
+        //If current move leads to draw--> endGame
+
+        int count = 0;
+        if (countSymb(row, column, 0, 1, symbol) == 5 ||
+                countSymb(row, column, 1, 0, symbol) == 5 ||
+                countSymb(row, column, 1, -1, symbol) == 5 ||
+                countSymb(row, column, 1, 1, symbol) == 5) {
+            endGame("Player " + currentPlayer + " has Won!!!");
+            gameEnded=true;
+        } else if (checkDraw()) {
+            endGame("The game has ended in a draw!!!");
+            gameEnded=true;
+        }
 
 
     }
 
-    private boolean checkDraw(){
-        for(int i=0;i<5;i++){
-            for(int j=0;j<5;j++){
-                if(board[i][j]=='-'){
+    private boolean checkDraw() {
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (board[i][j] == '-') {
                     return false;
                 }
             }
@@ -154,28 +175,29 @@ public class Game {
         return true;
     }
 
-    private int countSymb(int row,int column,int rowOffset,int columnOffset,char symbol){
+    private int countSymb(int row, int column, int rowOffset, int columnOffset, char symbol) {
         //need to check if full board is filled and still no win --> for the draw scenario
 
-        int count=0;
+        int count = 0;
         //forward counting
-        int r=row;
-        int c=column;
-        while(r>=0 && r<5 && c>=0 && c<5 && board[r][c]==symbol){
+        int r = row;
+        int c = column;
+        while (r >= 0 && r < 5 && c >= 0 && c < 5 && board[r][c] == symbol) {
             count++;
-            r+=rowOffset;
-            c+=columnOffset;
+            r += rowOffset;
+            c += columnOffset;
         }
 
-        r=row - rowOffset;
-        c=column - columnOffset;
-        while(r>=0 && r<5 && c>=0 && c<5 && board[r][c]==symbol){
+        r = row - rowOffset;
+        c = column - columnOffset;
+        while (r >= 0 && r < 5 && c >= 0 && c < 5 && board[r][c] == symbol) {
             count++;
-            r-=rowOffset;
-            c-=columnOffset;
+            r -= rowOffset;
+            c -= columnOffset;
         }
         return count;
     }
+
     private String buildboard() {
         StringBuilder displayBoard = new StringBuilder();
         displayBoard.append("Board\n");

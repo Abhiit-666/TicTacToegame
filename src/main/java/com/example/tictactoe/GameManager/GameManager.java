@@ -45,23 +45,23 @@ public class GameManager {
         System.out.println(">> procecssMessage");
         Game game = playertogameMap.get(session);
         if (game != null) {
-            Map<String, Object> playerDetails=game.nextPlayer(session);
-            WebSocketSession oppositionSession= (WebSocketSession) playerDetails.get("Session");
-            String currentPlayer=(String) playerDetails.get("currentPlayer");
-            System.out.println("pplayer session: "+ oppositionSession);
-            System.out.println("pcurrentPlayer: "+ currentPlayer);
-            if (message.contains("/text")){
-                String messagecontent[]=message.split(" ");
-                StringBuilder messagebuilder= new StringBuilder();
-                for(int i=1;i<messagecontent.length;i++){
-                    messagebuilder.append(messagecontent[i]+" ");
+            Map<String, Object> playerDetails = game.nextPlayer(session);
+            System.out.println("PPlayer Details: "+ playerDetails);
+            WebSocketSession oppositionSession = (WebSocketSession) playerDetails.get("Session");
+            String currentPlayer1 = (String) playerDetails.get("currentPlayer");
+            System.out.println("pcurrentPlayer: " + currentPlayer1);
+            if (message.contains("/text")) {
+                String messagecontent[] = message.split(" ");
+                StringBuilder messagebuilder = new StringBuilder();
+                for (int i = 1; i < messagecontent.length; i++) {
+                    messagebuilder.append(messagecontent[i] + " ");
                 }
                 String finalMessage = "Opponent" + " :" + messagebuilder.toString().trim();
 //                System.out.println(messagebuilder.toString().trim());
-                game.sendMessage(oppositionSession,finalMessage);
+                game.sendMessage(oppositionSession, finalMessage);
                 System.out.println("<< procecssMessage");
-            }else{
-                game.processMove(session,oppositionSession,currentPlayer, message);
+            } else {
+                game.processMove(session, oppositionSession, currentPlayer1, message);
                 System.out.println("<< procecssMessage");
             }
 
