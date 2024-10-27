@@ -22,7 +22,7 @@ public class Game {
     private Player player1;
     private Player player2;
     private char[][] board = new char[5][5];
-    private Player currentPlayer;
+    private int gameSize;
     private boolean gameEnded;
 
     //constructor to initialize a game.
@@ -30,7 +30,7 @@ public class Game {
         this.GameId = UUID.randomUUID().toString();
         this.player1 = player1;
         this.player2 = player2;
-        this.currentPlayer = player1;
+
     }
 
     //function to get gameid
@@ -44,6 +44,7 @@ public class Game {
     //Start Game will take in the game Type
     //Types --> 5X5, 3X3, 4X4 blitz
     public void startGame(String type) {
+
         constructBoard(type);
         sendMessage(player1.getSession(), "Game Started. You are Player 1.");
         sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
@@ -57,12 +58,15 @@ public class Game {
         int n=0;
         switch (Type){
             case "5X5":
+                gameSize=5;
                 n=5;
                 break;
             case "3X3":
+                gameSize=3;
                 n=3;
                 break;
-            case "4X4 blitz":
+            case "4X4":
+                gameSize=4;
                 n=5;
                 break;
         }
@@ -130,7 +134,7 @@ public class Game {
 
         int row = Integer.parseInt(move[0]);
         int column = Integer.parseInt(move[1]);
-        if (row >= 5 || column >= 5) {
+        if (row >= gameSize || column >= gameSize) {
             sendMessage(currentPlayerSession, "Enter a position in the board and not occupied!!");
             return false;
         }
@@ -176,8 +180,8 @@ public class Game {
     }
 
     private boolean checkDraw() {
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
+        for (int i = 0; i < gameSize; i++) {
+            for (int j = 0; j < gameSize; j++) {
                 if (board[i][j] == '-') {
                     return false;
                 }
@@ -193,7 +197,7 @@ public class Game {
         //forward counting
         int r = row;
         int c = column;
-        while (r >= 0 && r < 5 && c >= 0 && c < 5 && board[r][c] == symbol) {
+        while (r >= 0 && r < gameSize && c >= 0 && c < gameSize && board[r][c] == symbol) {
             count++;
             r += rowOffset;
             c += columnOffset;
@@ -201,7 +205,7 @@ public class Game {
 
         r = row - rowOffset;
         c = column - columnOffset;
-        while (r >= 0 && r < 5 && c >= 0 && c < 5 && board[r][c] == symbol) {
+        while (r >= 0 && r < gameSize && c >= 0 && c < gameSize && board[r][c] == symbol) {
             count++;
             r -= rowOffset;
             c -= columnOffset;
@@ -212,8 +216,8 @@ public class Game {
     private String buildboard() {
         StringBuilder displayBoard = new StringBuilder();
         displayBoard.append("Board\n");
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
+        for (int i = 0; i < gameSize; i++) {
+            for (int j = 0; j < gameSize; j++) {
                 displayBoard.append(board[i][j] + " |");
             }
             displayBoard.append("\n");

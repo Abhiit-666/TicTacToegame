@@ -19,7 +19,7 @@ public class GameServer
     @OnOpen 
     public void onOpen(WebSocketSession session){
         System.out.println("New player connected: "+session.getId());
-        gameManager.addPlayer(session);
+//        gameManager.addPlayer(session);
     }
 
     @OnMessage

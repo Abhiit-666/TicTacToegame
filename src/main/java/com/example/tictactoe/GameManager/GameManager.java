@@ -18,15 +18,16 @@ public class GameManager {
     private Map<GAMEMODE,Map<String, Player>> waitingPlayers = new ConcurrentHashMap<>();
     private Map<String, Game> activeGames = new ConcurrentHashMap<>();
     private Map<WebSocketSession, Game> playertogameMap = new ConcurrentHashMap<>();
-    private Map<Player,String> gameLobby=new ConcurrentHashMap<>();
+    
     //add Player.
-    public void addPlayer(WebSocketSession session) {
+    public void addPlayer(GAMEMODE gamemode,WebSocketSession session) {
         Player player = new Player(session);
-        gameLobby.put(player,)
-        if (waitingPlayers.isEmpty()) {
-            waitingPlayers.put(session.getId(), player);
+        if (waitingPlayers.get(gamemode) == null) {
+            waitingPlayers.put(gamemode,new ConcurrentHashMap<>());
+            Map<String,Player> modeList=waitingPlayers.get(gamemode);
+            modeList.put(player.getSession().getId(),player);
         } else {
-            Player opponent = waitingPlayers.values().iterator().next();
+            Player opponent = waitingPlayers.get(gamemode).values().iterator().next();
             player.setPlayerId("one");
             opponent.setPlayerId("two");
             Game game = new Game(player, opponent);
@@ -34,24 +35,24 @@ public class GameManager {
             playertogameMap.put(opponent.getSession(), game);
             activeGames.put(game.getGameId(), game);
             waitingPlayers.remove(opponent.getSession().getId());
-            game.startGame();
+            game.startGame(gamemode.getBoardSize());
         }
     }
 
+
     private void createLobby(WebSocketSession session, String message){
-        GAMEMODE mode;
+        //
+
         switch (message){
             case "MODE_1":
-                waitingPlayers.put(GAMEMODE.MODE_1,new ConcurrentHashMap<>());
-                mode= GAMEMODE.MODE_1;
+                addPlayer(GAMEMODE.MODE_1,session);
+
                 break;
             case "MODE_2":
-                waitingPlayers.put(GAMEMODE.MODE_2,new ConcurrentHashMap<>());
-                mode= GAMEMODE.MODE_2;
+                addPlayer(GAMEMODE.MODE_2,session);
                 break;
             case "MODE_3":
-                waitingPlayers.put(GAMEMODE.MODE_3,new ConcurrentHashMap<>());
-                mode= GAMEMODE.MODE_3;
+                addPlayer(GAMEMODE.MODE_3,session);
                 break;
         }
 
