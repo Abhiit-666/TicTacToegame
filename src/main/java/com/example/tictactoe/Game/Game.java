@@ -165,10 +165,10 @@ public class Game {
         //If current move leads to draw--> endGame
 
         int count = 0;
-        if (countSymb(row, column, 0, 1, symbol) == 5 ||
-                countSymb(row, column, 1, 0, symbol) == 5 ||
-                countSymb(row, column, 1, -1, symbol) == 5 ||
-                countSymb(row, column, 1, 1, symbol) == 5) {
+        if (countSymb(row, column, 0, 1, symbol) == gameSize ||
+                countSymb(row, column, 1, 0, symbol) == gameSize ||
+                countSymb(row, column, 1, -1, symbol) == gameSize ||
+                countSymb(row, column, 1, 1, symbol) == gameSize ) {
             endGame("Player " + currentPlayer + " has Won!!!");
             gameEnded=true;
         } else if (checkDraw()) {
@@ -236,6 +236,8 @@ public class Game {
 
     //function to notify end of game.
     public void endGame(String message) {
+        //Restart option on end.
+        //quit option
         sendMessage(player1.getSession(), "Game has ended " + message);
         sendMessage(player2.getSession(), "Game has ended " + message);
     }
