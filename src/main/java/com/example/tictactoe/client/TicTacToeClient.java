@@ -22,13 +22,20 @@ public class TicTacToeClient {
         if(message.contains("Opponent :")){
             System.out.println(message);
         }else {
-            System.out.println("Server :" + message);
+            System.out.print("\033[2K\r" + message);
+            System.out.print("\n");
+            System.out.flush();
+
         }
     }
     @OnOpen
     public void onOpen(Session session){
         this.session= session;
         System.out.println("Connected to the server");
+        Scanner sc=new Scanner(System.in);
+        System.out.println("Choose a Mode: \n1.5x5 \n2.3X3 \n3.4X4 blitz");
+        String choice=sc.nextLine();
+        sendMessage("MODE_"+choice);
     }
     @OnClose
     public void onClose(Session session,CloseReason closeReason){

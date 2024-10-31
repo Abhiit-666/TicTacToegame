@@ -14,7 +14,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception{
-        gameManager.addPlayer(session);
+//        gameManager.addPlayer(session);
     }
 
     @Override
