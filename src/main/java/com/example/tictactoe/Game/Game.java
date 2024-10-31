@@ -1,17 +1,20 @@
 package com.example.tictactoe.Game;
 
 import ch.qos.logback.core.net.SyslogOutputStream;
+import com.example.tictactoe.GameManager.GameManager;
 import com.example.tictactoe.Model.Player;
 import jakarta.websocket.Session;
 import org.slf4j.ILoggerFactory;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class Game {
     //2players.
@@ -24,13 +27,21 @@ public class Game {
     private char[][] board = new char[5][5];
     private int gameSize;
     private boolean gameEnded;
+    private ScheduledExecutorService timerService;
+    private Runnable timerTask;
+
+    private final BlockingQueue<String> player1Queue= new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> player2Queue= new LinkedBlockingQueue<>();
 
     //constructor to initialize a game.
     public Game(Player player1, Player player2) {
         this.GameId = UUID.randomUUID().toString();
         this.player1 = player1;
         this.player2 = player2;
+        this.timerService= Executors.newSingleThreadScheduledExecutor();
 
+        startMessageProcessingThread(player1.getSession(),player1Queue);
+        startMessageProcessingThread(player2.getSession(),player2Queue);
     }
 
     //function to get gameid
@@ -46,13 +57,71 @@ public class Game {
     public void startGame(String type) {
 
         constructBoard(type);
-        sendMessage(player1.getSession(), "Game Started. You are Player 1.");
-        sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
-        sendMessage(player2.getSession(), "Game Started. You are Player 2.");
-        sendMessage(player2.getSession(), "Player 1 -> o Player 2 -> x");
+        queueMessageForPlayer1("Game Started. You are Player 1.");
+        queueMessageForPlayer1("Player 1 -> o, Player 2 -> x");
+        queueMessageForPlayer2("Game Started. You are Player 2.");
+        queueMessageForPlayer2("Player 1 -> o, Player 2 -> x");
         sendGameState(player1.getSession(), player2.getSession());
-        sendMessage(player1.getSession(), "Make your move");
+        queueMessageForPlayer1( "Make your move");
+
+//        sendMessage(player1.getSession(), "Game Started. You are Player 1.");
+//        sendMessage(player1.getSession(), "Player 1 -> o Player 2 -> x");
+//        sendMessage(player2.getSession(), "Game Started. You are Player 2.");
+//        sendMessage(player2.getSession(), "Player 1 -> o Player 2 -> x");
+//        sendMessage(player1.getSession(), "Make your move");
+        if(type.equalsIgnoreCase("4X4")){
+            startTimer(player1.getSession());
+        }
     }
+
+    private void startTimer(WebSocketSession session){
+        //Stop the executor running the Runnable
+        if(timerTask!=null){
+            timerService.shutdownNow();
+        }
+//        timerService=Executors.newSingleThreadScheduledExecutor();
+
+        timerTask=new Runnable() {
+            int timeRemaining= 10;
+            @Override
+            public void run() {
+                if(timeRemaining > 0){
+
+                    timeRemaining--;
+                }
+                else{
+                    queuemessage(session,"Times up!! you missed your turn");
+//                    sendMessage(session,"Times up!! you missed your turn");
+                    timerService.shutdownNow();
+                    switchTurn(session);
+                }
+            }
+        };
+
+        timerService = Executors.newSingleThreadScheduledExecutor();
+        timerService.scheduleAtFixedRate(timerTask,0,1, TimeUnit.SECONDS);
+    }
+
+    public void switchTurn(WebSocketSession session){
+        WebSocketSession nexPlayerSeession= (session.equals(player1.getSession())) ? player2.getSession():player1.getSession();
+        System.out.println("Next Player Session: " + nexPlayerSeession);
+        if(nexPlayerSeession.isOpen()) {
+            queuemessage(nexPlayerSeession,"Make your move");
+//            sendMessage(nexPlayerSeession, "Make your move");
+            startTimer(nexPlayerSeession);
+        }
+        else{
+            queuemessage(session,"Opponent disconnected, Closing game server!!");
+        }
+    }
+
+    private void sendLiveCountdown(WebSocketSession session, int timeRemaining){
+        String message="Time Remaining: "+timeRemaining+" seconds";
+        //new Line and clear screen ANSI sequence for CLI display
+
+//        sendMessage(session, message);
+    }
+
 
     private void constructBoard(String Type) {
         int n=0;
@@ -67,7 +136,7 @@ public class Game {
                 break;
             case "4X4":
                 gameSize=4;
-                n=5;
+                n=4;
                 break;
         }
         //intitializing the board at start
@@ -92,15 +161,11 @@ public class Game {
         if (player1.getSession().equals(session)) {
             playerDetails.put("Session", player2.getSession());
             playerDetails.put("currentPlayer", player1.getPlayerId());
-            System.out.println("player session: " + player2.getSession());
-            System.out.println("currentPlayer: " + player1.getPlayerId());
             System.out.println("<< nextPlayer");
             return playerDetails;
         }
         playerDetails.put("Session", player1.getSession());
         playerDetails.put("currentPlayer", player2.getPlayerId());
-        System.out.println("player session: " + player1.getSession());
-        System.out.println("currentPlayer: " + player2.getPlayerId());
         System.out.println("<< nextPlayer");
         return playerDetails;
 
@@ -118,9 +183,12 @@ public class Game {
         boolean update= checkandUpdateMove(coords, currentPlayer, session);
         if(update && !gameEnded){
         sendGameState(session, nextplayerSession);
-        sendMessage(nextplayerSession, "Make your move");
+        queuemessage(nextplayerSession,"Make your move");
+//        sendMessage(nextplayerSession, "Make your move");
+        startTimer(nextplayerSession);
         }else if (!update && !gameEnded) {
-            sendMessage(session, "Make your move");
+            queuemessage(session,"Make your move");
+//            sendMessage(session, "Make your move");
         }
 
     }
@@ -135,7 +203,8 @@ public class Game {
         int row = Integer.parseInt(move[0]);
         int column = Integer.parseInt(move[1]);
         if (row >= gameSize || column >= gameSize) {
-            sendMessage(currentPlayerSession, "Enter a position in the board and not occupied!!");
+           queuemessage(currentPlayerSession,"Enter a position in the board and not occupied!!");
+//            sendMessage(currentPlayerSession, "Enter a position in the board and not occupied!!");
             return false;
         }
 
@@ -149,7 +218,8 @@ public class Game {
             }
             //this would ideally be a boolean
         } else if (board[row][column] != '-') {
-            sendMessage(currentPlayerSession, "Invalid location");
+            queuemessage(currentPlayerSession,"Invalid location");
+//            sendMessage(currentPlayerSession, "Invalid location");
             return false;
         }
             return true;
@@ -230,28 +300,78 @@ public class Game {
         String displayBoard = buildboard();
 
         //I need to update current player everytime there is a move
-        sendMessage(player1session, displayBoard);
-        sendMessage(player2session, displayBoard);
+        queuemessage(player1session,displayBoard);
+        queuemessage(player2session,displayBoard);
+//        queueMessageForPlayer1(displayBoard);
+//        queueMessageForPlayer2(displayBoard);
     }
 
     //function to notify end of game.
     public void endGame(String message) {
         //Restart option on end.
         //quit option
-        sendMessage(player1.getSession(), "Game has ended " + message);
-        sendMessage(player2.getSession(), "Game has ended " + message);
+        queueMessageForPlayer1("Game has ended: "+message);
+        queueMessageForPlayer2("Game has ended: "+message);
+
+        try{
+            player1.getSession().close();
+            player2.getSession().close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+//        sendMessage(player1.getSession(), "Game has ended " + message);
+//        sendMessage(player2.getSession(), "Game has ended " + message);
+        gameEnded=true;
+        if (timerService != null && !timerService.isShutdown()) {
+            timerService.shutdownNow();  // Cleanly shut down the timer
+        }
+    }
+
+    public void queueMessageForPlayer1(String message){
+        player1Queue.offer(message);
+    }
+
+    public void queueMessageForPlayer2(String message){
+        player2Queue.offer(message);
+    }
+
+    public void queuemessage(WebSocketSession session, String message){
+        if(session.equals(player1.getSession())){
+            queueMessageForPlayer1(message);
+        }else{
+            queueMessageForPlayer2(message);
+        }
     }
 
 
+    private void startMessageProcessingThread(WebSocketSession session, BlockingQueue<String> queue){
+        new Thread(() -> {
+            while(true){
+                try{
+                    String message=queue.take();
+                    synchronized (session){
+                        if(session.isOpen()){
+                            session.sendMessage(new TextMessage(message));
+                        }
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
     //helper for the sending message
     //session remote.sendText
 
-    public void sendMessage(WebSocketSession session, String message) {
-        //find someway to differentiate between a Server message and a player sending a message
-        try {
-            session.sendMessage(new TextMessage(message));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public void sendMessage(WebSocketSession session, String message) {
+//        //find someway to differentiate between a Server message and a player sending a message
+//        try {
+//            synchronized (session) {
+//                session.sendMessage(new TextMessage(message));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

@@ -22,7 +22,10 @@ public class TicTacToeClient {
         if(message.contains("Opponent :")){
             System.out.println(message);
         }else {
-            System.out.println("Server :" + message);
+            System.out.print("\033[2K\r" + message);
+            System.out.print("\n");
+            System.out.flush();
+
         }
     }
     @OnOpen

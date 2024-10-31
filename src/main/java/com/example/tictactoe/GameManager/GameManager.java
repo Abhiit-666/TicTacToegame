@@ -66,6 +66,7 @@ public class GameManager {
         System.out.println(">> procecssMessage");
 
         if(message.contains("MODE")){
+            System.out.println("Game Mode: "+ message);
             createLobby(session,message);
         }
         else{
@@ -84,7 +85,7 @@ public class GameManager {
                 }
                 String finalMessage = "Opponent" + " :" + messagebuilder.toString().trim();
 //                System.out.println(messagebuilder.toString().trim());
-                game.sendMessage(oppositionSession, finalMessage);
+                game.queuemessage(oppositionSession, finalMessage);
                 System.out.println("<< procecssMessage");
             } else {
                 game.processMove(session, oppositionSession, currentPlayer1, message);
